@@ -189,6 +189,18 @@
             font-size: 0.9em;
         }
 
+        .message-role {
+            font-size: 0.8em;
+            color: #7289DA; /* Цвет для роли */
+            margin-left: 5px;
+        }
+
+        .work-hours {
+            font-size: 0.8em;
+            color: #9CCC65; /* Зеленый цвет для времени работы */
+            margin-left: 5px;
+        }
+
         .message-input-container {
             display: flex;
             padding: 20px;
@@ -225,6 +237,7 @@
         .send-button:hover {
             background-color: #42A5F5;
         }
+
         /* --- Settings Panel --- */
         .settings-panel {
             position: absolute;
@@ -284,6 +297,7 @@
         .settings-panel button:hover {
             background-color: #8BC34A;
         }
+
         /* Overly */
         .overlay {
             position: fixed;
@@ -381,6 +395,12 @@
         <label for="displayName">Отображаемое имя:</label>
         <input type="text" id="displayName" placeholder="Ваше анонимное имя">
 
+        <label for="role">Роль:</label>
+        <select id="role">
+            <option value="developer">Разработчик</option>
+            <option value="customer">Заказчик</option>
+        </select>
+
         <label for="timezone">Часовой пояс:</label>
         <select id="timezone">
             <option value="UTC-12">(UTC-12:00) Остров Бейкер</option>
@@ -446,6 +466,7 @@
         let currentRoomId = null;
         let userSettings = {
             displayName: localStorage.getItem('displayName') || 'Аноним',
+            role: localStorage.getItem('role') || 'developer', // По умолчанию "Разработчик"
             timezone: localStorage.getItem('timezone') || 'UTC+00',
             workHours: localStorage.getItem('workHours') || '09:00-17:00'
         };
@@ -456,6 +477,7 @@
             document.getElementById('overlay').style.display = 'block';
             // Заполнить поля настроек
             document.getElementById('displayName').value = userSettings.displayName;
+            document.getElementById('role').value = userSettings.role;
             document.getElementById('timezone').value = userSettings.timezone;
             document.getElementById('workHours').value = userSettings.workHours;
         }
@@ -468,11 +490,13 @@
         // Function to save user settings
         function saveSettings() {
             userSettings.displayName = document.getElementById('displayName').value;
+            userSettings.role = document.getElementById('role').value;
             userSettings.timezone = document.getElementById('timezone').value;
             userSettings.workHours = document.getElementById('workHours').value;
 
-            // Сохранить в localStorage (ЗАМЕНИТЕ на сохранение в бэкенде!)
+            // Сохранить в localStorage
             localStorage.setItem('displayName', userSettings.displayName);
+            localStorage.setItem('role', userSettings.role);
             localStorage.setItem('timezone', userSettings.timezone);
             localStorage.setItem('workHours', userSettings.workHours);
 
@@ -516,12 +540,13 @@
             const minutes = date.getMinutes().toString().padStart(2, '0');
             return `${hours}:${minutes}`;
         }
-                // Helper function to get offset from a timezone string (e.g., "UTC+03")
+
+        // Helper function to get offset from a timezone string (e.g., "UTC+03")
         function getTimezoneOffset(timezone) {
-                const sign = timezone.includes('-') ? -1 : 1;
-                const offset = parseInt(timezone.slice(3), 10);
-                return sign * offset * 60; // Offset in minutes
-            }
+            const sign = timezone.includes('-') ? -1 : 1;
+            const offset = parseInt(timezone.slice(3), 10);
+            return sign * offset * 60; // Offset in minutes
+        }
 
         function isWithinWorkingHours(workHours, timezone) {
             const now = new Date();
@@ -555,11 +580,11 @@
             if (messageText && currentRoomId) {
                 const message = {
                     sender: userSettings.displayName,
+                    role: userSettings.role, // Добавляем роль в сообщение
                     text: messageText,
                     timestamp: new Date().toISOString(),
-                    userTimezone: userSettings.timezone, // Store sender's timezone
-                    workHours: userSettings.workHours,
-                    recipientWorkingHours: userSettings.workHours //  TODO: backend will determine if the receiver is online
+                    userTimezone: userSettings.timezone,
+                    workHours: userSettings.workHours
                 };
 
                 const room = rooms.find(room => room.id === currentRoomId);
@@ -584,7 +609,13 @@
                         const withinWorkingHours = isWithinWorkingHours(message.workHours, message.userTimezone);
                         if (withinWorkingHours) {
                             const messageTime = formatMessageTime(message.timestamp);
-                            li.innerHTML = `<div class="message-sender">${message.sender}</div>${message.text} <span class="message-time">${messageTime}</span>`;
+                            li.innerHTML = `
+                                <div class="message-sender">
+                                    ${message.sender} 
+                                    <span class="message-role">(${message.role === 'developer' ? 'Разработчик' : 'Заказчик'})</span>
+                                    <span class="work-hours">${message.workHours ? `[${message.workHours}]` : ''}</span>
+                                </div>
+                                ${message.text} <span class="message-time">${messageTime}</span>`;
                             messageList.appendChild(li);
                         }
                     });
@@ -602,18 +633,31 @@
                 option.text = tz.text;
                 timezoneSelect.appendChild(option);
             });
+
+            // Role select options
+            const roleSelect = document.getElementById('role');
+            roleSelect.value = userSettings.role;
+
             // Load saved settings and set values
             document.getElementById('timezone').value = userSettings.timezone;
             document.getElementById('workHours').value = userSettings.workHours;
-            // Event Listeners for settings changes (crucial!)
+
+            // Event Listeners for settings changes
             document.getElementById('timezone').addEventListener('change', function() {
                 userSettings.timezone = this.value;
                 localStorage.setItem('timezone', this.value);
             });
+
+            document.getElementById('role').addEventListener('change', function() {
+                userSettings.role = this.value;
+                localStorage.setItem('role', this.value);
+            });
+
             document.getElementById('workHours').addEventListener('change', function() {
                 userSettings.workHours = this.value;
                 localStorage.setItem('workHours', this.value);
             });
+
             // Remove the loading screen
             document.getElementById('loading').classList.add('loaded');
         }
