@@ -369,7 +369,6 @@
                 <!-- Комнаты будут добавлены здесь -->
             </ul>
             <button class="add-room-button" onclick="addRoom()">Создать комнату</button>
-            <button class="clear-button" onclick="clearLocalStorage()">Очистить данные</button>
         </div>
 
         <!-- Основной контент (Чат) -->
@@ -682,14 +681,6 @@
             if (savedRooms) {
                 rooms = JSON.parse(savedRooms);
             }
-        }
-
-        // Функция для очистки localStorage
-        function clearLocalStorage() {
-            localStorage.clear();
-            rooms = [];
-            renderRooms();
-            alert("Все данные очищены!");
         }
 
         renderRooms();
