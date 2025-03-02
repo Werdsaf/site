@@ -98,6 +98,21 @@
             background-color: #2A3659;
         }
 
+        .room-id {
+            font-size: 0.8em;
+            color: #7289DA; /* Цвет для ID комнаты */
+            margin-left: 8px;
+            opacity: 0.7;
+        }
+
+        /* Контейнер для кнопок */
+        .room-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Отступ между кнопками */
+            margin-top: 20px; /* Общий отступ сверху */
+        }
+
         .add-room-button {
             background-color: #5865F2;
             color: white;
@@ -106,7 +121,6 @@
             border-radius: 12px;
             cursor: pointer;
             width: 100%;
-            margin-top: auto;
             transition: background-color 0.3s ease;
             font-weight: 700;
             font-size: 1.1em;
@@ -368,7 +382,10 @@
             <ul class="room-list" id="roomList">
                 <!-- Комнаты будут добавлены здесь -->
             </ul>
-            <button class="add-room-button" onclick="addRoom()">Создать комнату</button>
+            <div class="room-buttons">
+                <button class="add-room-button" onclick="addRoom()">Создать комнату</button>
+                <button class="add-room-button" onclick="connectToRoom()">Подключиться к комнате</button>
+            </div>
         </div>
 
         <!-- Основной контент (Чат) -->
@@ -514,6 +531,18 @@
             }
         }
 
+        function connectToRoom() {
+            const roomId = prompt("Введите ID комнаты:");
+            if (roomId) {
+                const room = rooms.find(room => room.id === roomId);
+                if (room) {
+                    setActiveRoom(roomId);
+                } else {
+                    alert("Комната с таким ID не найдена.");
+                }
+            }
+        }
+
         function setActiveRoom(roomId) {
             currentRoomId = roomId;
             const chatTitle = document.getElementById('chatTitle');
@@ -529,7 +558,10 @@
                 const li = document.createElement('li');
                 li.setAttribute('data-room-id', room.id);
                 li.onclick = () => setActiveRoom(room.id);
-                li.textContent = room.name;
+                li.innerHTML = `
+                    ${room.name}
+                    <span class="room-id">ID: ${room.id}</span>
+                `;
                 roomList.appendChild(li);
             });
         }
