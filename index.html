@@ -369,6 +369,7 @@
                 <!-- Комнаты будут добавлены здесь -->
             </ul>
             <button class="add-room-button" onclick="addRoom()">Создать комнату</button>
+            <button class="clear-button" onclick="clearLocalStorage()">Очистить данные</button>
         </div>
 
         <!-- Основной контент (Чат) -->
@@ -510,6 +511,7 @@
                 const roomId = generateId();
                 rooms.push({ id: roomId, name: roomName, messages: [] });
                 renderRooms();
+                saveRoomsToLocalStorage(); // Сохраняем комнаты в localStorage
             }
         }
 
@@ -592,6 +594,7 @@
                     room.messages.push(message);
                     renderMessages();
                     messageInput.value = "";
+                    saveRoomsToLocalStorage(); // Сохраняем комнаты в localStorage
                 }
             }
         }
@@ -625,6 +628,9 @@
 
         // --- Init ---
         function init() {
+            // Загружаем комнаты из localStorage
+            loadRoomsFromLocalStorage();
+
             // Timezone select options
             const timezoneSelect = document.getElementById('timezone');
             timezones.forEach(tz => {
@@ -660,6 +666,30 @@
 
             // Remove the loading screen
             document.getElementById('loading').classList.add('loaded');
+
+            // Рендерим комнаты после загрузки
+            renderRooms();
+        }
+
+        // Функция для сохранения комнат в localStorage
+        function saveRoomsToLocalStorage() {
+            localStorage.setItem('rooms', JSON.stringify(rooms));
+        }
+
+        // Функция для загрузки комнат из localStorage
+        function loadRoomsFromLocalStorage() {
+            const savedRooms = localStorage.getItem('rooms');
+            if (savedRooms) {
+                rooms = JSON.parse(savedRooms);
+            }
+        }
+
+        // Функция для очистки localStorage
+        function clearLocalStorage() {
+            localStorage.clear();
+            rooms = [];
+            renderRooms();
+            alert("Все данные очищены!");
         }
 
         renderRooms();
